@@ -14,12 +14,16 @@ class Comment
     @user['name']
   end
 
+  def likes
+    @comment['likecount']
+  end
+
   def timestamp
     @comment['timestamp']['verbose']
   end
 
   def to_s
-    "#{timestamp} - #{user}: #{text}"
+    "#{user}: #{text} (#{likes} likes)"
   end
 end
 
@@ -47,7 +51,23 @@ comments = []
 Dir.glob("data/*.json") do |file|
   content = File.read(file)
   page = CommentsPage.new(content)
-  comments << page.comments
+  comments.concat(page.comments)
 end
 
-puts comments
+def comments_leaderboard comments
+  grouped = comments.group_by { |x| x.user }.map { |k, v| { name: k, count: v.count } }
+  sorted = grouped.sort_by { |x| x[:count] }
+  sorted.reverse.first(10)
+end
+
+def likes_leaderboard comments
+  #grouped = comments.group_by { |x| x.likes }.map { |k, v| { name: k, count: v.count } }
+  sorted = comments.sort_by { |x| x.likes }
+  sorted.reverse.first(10)
+end
+
+puts "MOST COMMENTS"
+puts comments_leaderboard(comments)
+puts
+puts "MOST LIKES"
+puts likes_leaderboard(comments)
